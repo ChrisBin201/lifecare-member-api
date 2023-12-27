@@ -39,10 +39,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,7 +70,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public PaginationResult<MemberDTO> search(MemberSearchPayload request) {
         if(request.getFromDate() > request.getToDate()) {
-            throw new RuntimeException("From date must be less than to date");
+            throw new CommonException(HttpStatus.BAD_REQUEST.value(), CommonErrorCode.INVALID_FROM_TO_DATE.getCode(), CommonErrorCode.INVALID_FROM_TO_DATE.getMessage());
         }
         LocalDate fromDate = null;
         LocalDate toDate = null;
@@ -98,10 +95,12 @@ public class MemberServiceImpl implements MemberService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsInfo userLogin = (UserDetailsInfo) authentication.getPrincipal();
 
+//        List<String> authCheckPermission = List.of(PermissionType.UPDATE.name(), Role.ADMIN.name());
         result.setList(memberPage.getContent().stream().map(member -> {
                 MemberDTO memberDTO = MemberDTO.from(member);
                 if(!userLogin.getRole().equals(Role.ADMIN.name())) memberDTO.setPermissions(null);
-                return memberDTO;
+//            if(userLogin.getAuthorities().stream().noneMatch(a -> authCheckPermission.contains(a.getAuthority()))) memberDTO.setPermissions(null);
+            return memberDTO;
         }).toList());
 
         return result;
@@ -144,7 +143,12 @@ public class MemberServiceImpl implements MemberService {
         UserDetailsInfo userLogin = (UserDetailsInfo) authentication.getPrincipal();
 
         if(!emailDomainValidated(request.getEmail())) {
-            throw new RuntimeException("Email domain is not valid");
+            throw new CommonException(HttpStatus.BAD_REQUEST.value(), CommonErrorCode.INVALID_EMAIL.getCode(), CommonErrorCode.INVALID_EMAIL.getMessage());
+        }
+        Optional<Member> existMember = memberRepo.findById(request.getId());
+        if(existMember.isPresent() && existMember.get().getMemberNo() != memberNo) {
+            throw new CommonException(HttpStatus.BAD_REQUEST.value(), CommonErrorCode.MEMBER_ID_EXISTS.getCode(), CommonErrorCode.MEMBER_ID_EXISTS.getMessage());
+
         }
         Member member = memberRepo.findByMemberNo(memberNo).orElseThrow(() -> new RuntimeException("Member not found"));
         if(userLogin.getRole().equals(Role.ADMIN.name()))

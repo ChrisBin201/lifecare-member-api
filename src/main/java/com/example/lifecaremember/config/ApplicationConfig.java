@@ -1,6 +1,7 @@
 package com.example.lifecaremember.config;
 
 import com.example.lifecaremember.model.Member;
+import com.example.lifecaremember.model.enumerate.MemberStatus;
 import com.example.lifecaremember.repo.MemberRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +27,13 @@ public class ApplicationConfig {
     public UserDetailsService userDetailsService() {
         return username -> {
             Optional<Member> user = repository.findById(username);
-            return user.map(UserDetailsInfo::new)
-                    .orElseThrow(() -> new UsernameNotFoundException("Member not found"));
+            return user.map(u -> {
+                if(u.getStatus().name().equals(MemberStatus.INACTIVE.name())) {
+                    throw new UsernameNotFoundException("Member not found");
+                } else {
+                    return new UserDetailsInfo(u);
+                }
+            }).orElseThrow(() -> new UsernameNotFoundException("Member not found"));
         };
     }
 

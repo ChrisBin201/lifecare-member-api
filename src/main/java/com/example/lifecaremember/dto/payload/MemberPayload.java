@@ -3,6 +3,7 @@ package com.example.lifecaremember.dto.payload;
 import com.example.lifecaremember.model.enumerate.MemberStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,5 +43,6 @@ public class MemberPayload {
 
     private MemberStatus status;
 
+    @JsonProperty("permissions")
     private List<Long> permissionIds;
 }

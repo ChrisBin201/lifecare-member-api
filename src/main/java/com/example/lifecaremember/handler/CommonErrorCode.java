@@ -13,6 +13,7 @@ public enum CommonErrorCode {
 
     INVALID_PASSWORD(400, "INVALID_PASSWORD", "Invalid password"),
     INVALID_EMAIL(400, "INVALID_EMAIL", "Invalid email"),
+    INVALID_FROM_TO_DATE(400, "INVALID_FROM_TO_DATE", "Invalid from date or to date"),
     MEMBER_ID_EXISTS(400, "MEMBER_ID_ALREADY_EXISTS", "Member id already exists");
 
     private  int status;
